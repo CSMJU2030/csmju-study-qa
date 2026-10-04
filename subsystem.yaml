@@ -6,7 +6,7 @@ name: csmju-study-qa                  # ตรงกับทะเบียน�
 display_name: "ถาม-ตอบวิชาการ CS แม่โจ้"
 repo: github.com/CSMJU2030/csmju-study-qa
 status: proposed
-standards_version: "1.0.0"          # ตรงกับ .standards-version และ submodule standards/
+standards_version: "1.7.0"          # ตรงกับ .standards-version (ช่องนี้ไม่มีเช็คอ่านแล้วตั้งแต่ 1.5.1)
 conformance_level: L3
 
 base_url: https://csmju-study-qa.vercel.app   # ประตูเดียวคือ frontend (Vercel) ซึ่งส่ง /api และ /auth ต่อไป backend (Render) · ในเครื่องใช้ http://localhost:3235
