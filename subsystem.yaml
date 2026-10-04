@@ -1,36 +1,65 @@
 # manifest ของระบบย่อย — CI และ conformance อ่านไฟล์นี้ไฟล์เดียว
 # schema: standards/schemas/subsystem.schema.json
+# ห้ามใส่บัญชีหรือรหัสผ่านในไฟล์นี้ — บัญชีทดสอบอยู่ในไฟล์นอก repo (standards/docs/conformance.md ข้อ 2.1)
 
-name: csmju-study-qa          # ต้องตรงกับทะเบียนใน Core Hub และกับ data.service ของ /api/health
-standards_version: "1.0.0"
-conformance_level: L3                 # L1 · L2 · L3 (ระบบที่มี UI ต้องถึง L3)
+name: csmju-study-qa                  # ตรงกับทะเบียนใน Core Hub และกับ data.service ของ /api/health
+display_name: "ถาม-ตอบวิชาการ CS แม่โจ้"
+repo: github.com/CSMJU2030/csmju-study-qa
+status: proposed
+standards_version: "1.0.0"          # ตรงกับ .standards-version และ submodule standards/
+conformance_level: L3
 
-base_url: http://localhost:3002       # URL ของระบบย่อยตอนรันเพื่อทดสอบ
-core_hub_url: http://localhost:3000
+base_url: https://csmju-study-qa.vercel.app   # ประตูเดียวคือ frontend (Vercel) ซึ่งส่ง /api และ /auth ต่อไป backend (Render) · ในเครื่องใช้ http://localhost:3235
+core_hub_url: https://csmju2030.jowave.com
+core_hub_web_url: https://csmju2030.jowave.com
 callback_path: /auth/callback         # ต้องตรงกับ callback_url ที่ลงทะเบียนไว้
 
 public_endpoints:
   - GET /api/health
+  - GET /auth/login
   - GET /auth/callback
+  - POST /auth/logout
 
-# conformance ใช้ probes ตรวจสัญญา API — ประกาศไม่ครบ = ขึ้น SKIP = ยังไม่ผ่าน
+# conformance ใช้ probes ตรวจสัญญา API
+# alumni อ่านกระทู้ได้อย่างเดียว จึงเป็น role ที่ต้องโดน 403 ตอนตั้งคำถาม
 probes:
-  collection: /api/v1/<resources>
-  not_found: /api/v1/<resources>/99999999-9999-4999-8999-999999999999
-  invalid_id: /api/v1/<resources>/not-a-uuid
+  collection: /api/v1/questions
+  not_found: /api/v1/questions/99999999-9999-4999-8999-999999999999
+  invalid_id: /api/v1/questions/not-a-uuid
   create:
-    path: /api/v1/<resources>
+    path: /api/v1/questions
     allowed_role: staff
-    denied_role: student
+    denied_role: alumni
     invalid_body:
-      someRequiredField: ""
+      title: ""
+      body: ""
     valid_body:
-      someRequiredField: value
+      title: Conformance probe
+      body: สร้างโดยชุดทดสอบ conformance ของ csmju2030-standards
+      tags:
+        - General
+
+stack:
+  frontend: "next@16"
+  backend: "nest@11"
+  database: "postgresql@16"
+
+# ui-design-system.md ข้อ 19.2 · ช่วงเปลี่ยนผ่านใช้ template csmju-subsystem-web (ข้อ 17.0)
+ui:
+  design_system_version: "template:csmju-subsystem-web"
+  theme: light
+  nav:
+    - { label: "ผู้ช่วยวิชาการ", path: "/" }
+    - { label: "กระทู้ถามตอบ", path: "/questions" }
+    - { label: "ทำเนียบอาจารย์", path: "/faculty" }
+    - { label: "ภาพรวม", path: "/stats" }
+    - { label: "ข้อมูลของฉัน", path: "/profiles/me" }
+  # ของที่ design system ยังไม่มี ทำเองชั่วคราวใน frontend/src — รอส่งคำขอตามข้อ 17.4
+  local_components:
+    - { name: "icons (ไอคอนเพิ่มเติม 25 ตัว)", path: "frontend/src/components/shared/icons.tsx", issue: "" }
+    - { name: "format (formatDate/DateTime/Relative/Number/Phone)", path: "frontend/src/lib/format.ts", issue: "" }
+    - { name: "Avatar", path: "frontend/src/components/shared/Avatar.tsx", issue: "" }
 
 owners:
   pl: "@csmju2030/pl-study-qa"
   aie: "@csmju2030/aie-study-qa"
-
-display_name: "Study Q&A"
-repo: github.com/CSMJU2030/csmju-study-qa
-status: proposed
