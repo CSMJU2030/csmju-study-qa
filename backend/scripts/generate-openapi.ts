@@ -4,8 +4,6 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { ROUTES_OUTSIDE_API_PREFIX } from '../src/app-setup';
-import { AppModule } from '../src/app.module';
 
 /**
  * Writes backend/openapi.json from the controllers (tech-stack.md ข้อ 3).
@@ -13,10 +11,16 @@ import { AppModule } from '../src/app.module';
  * or Core Hub is needed.
  */
 async function main(): Promise<void> {
+  // ConfigModule.forRoot validates the env while app.module loads, so the
+  // placeholder must exist before that import (CI has no .env — API-01)
   process.env.DATABASE_URL ??= 'postgresql://localhost/openapi_only';
+  const { ROUTES_OUTSIDE_API_PREFIX } = await import('../src/app-setup');
+  const { AppModule } = await import('../src/app.module');
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     preview: true,
     logger: false,
+    abortOnError: false,
   });
   app.setGlobalPrefix('api', { exclude: ROUTES_OUTSIDE_API_PREFIX });
 
@@ -35,4 +39,7 @@ async function main(): Promise<void> {
   await app.close();
 }
 
-void main();
+main().catch((error: unknown) => {
+  console.error(error);
+  process.exit(1);
+});
