@@ -1,8 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "CSMJU Helpdesk - กระดานถาม-ตอบสาขาวิทยาการคอมพิวเตอร์ (ระบบย่อยของ CSMJU2030)",
-  "license": "UNLICENSED",
+"description": "ถาม-ตอบวิชาการ CS แม่โจ้ - กระดานถาม-ตอบสาขาวิทยาการคอมพิวเตอร์ (ระบบย่อยของ CSMJU2030)",  "license": "UNLICENSED",
   "private": true,
   "scripts": {
     "build": "nest build",
