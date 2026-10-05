@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "CSMJU Helpdesk  เป็น  ถาม-ตอบวิชาการ CS แม่โจ้",
+  "description": "ถาม-ตอบวิชาการ CS แม่โจ้ - กระดานถาม-ตอบสาขาวิทยาการคอมพิวเตอร์ (ระบบย่อยของ CSMJU2030)",
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
