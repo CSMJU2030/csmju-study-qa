@@ -11,3 +11,15 @@ generated/
 *.pem
 *.key
 !.env.example
+
+# --- เพิ่มจากระบบ csmju-study-qa ---
+dist-ssr/
+*.log
+.DS_Store
+Thumbs.db
+# ทุกไฟล์ .env ยกเว้นตัวอย่าง (ต้องอยู่หลัง .env.* เสมอ)
+.env.*
+!.env.example
+# สำเนา repo อื่นที่วางไว้ข้างกันเพื่อรันในเครื่อง (standards ของจริงคือ submodule standards/)
+/csmju2030-standards/
+/csmju-core-hub/
