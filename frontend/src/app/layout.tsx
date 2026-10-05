@@ -25,6 +25,9 @@ const notoSansThai = Noto_Sans_Thai({
 // ต้องตรงกับ display_name ใน subsystem.yaml
 const DISPLAY_NAME = "ถาม-ตอบวิชาการ CS แม่โจ้";
 
+// หน้าเว็บ Core Hub ของปุ่ม "กลับ CSMJU Portal" — มาจาก .env ห้าม hardcode (ui-design-system.md ข้อ 5.1)
+const CORE_HUB_WEB_URL = process.env.CORE_HUB_WEB_URL;
+
 const NAV: NavItem[] = [
   { label: "ผู้ช่วยวิชาการ", labelEn: "Assistant", href: "/", icon: "school" },
   { label: "กระทู้ถามตอบ", labelEn: "Forum", href: "/questions", icon: "description" },
@@ -54,6 +57,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <CsmjuAppShell
             displayName={DISPLAY_NAME}
             nav={NAV}
+            coreHubUrl={CORE_HUB_WEB_URL}
             primaryAction={
               can(session.profile, "question:create")
                 ? { label: "ตั้งคำถาม", href: "/questions/new" }
