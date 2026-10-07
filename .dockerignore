@@ -1,16 +1,11 @@
-node_modules
+# Build context is the repo root (standards docs/deployment.md 3 · DEP-03)
 **/node_modules
-dist
-**/dist
-generated
-**/generated
-coverage
-.env
-**/.env
-*.log
-.git
-csmju2030-standards
-csmju-core-hub
-standards
-.next
 **/.next
+**/dist
+**/generated
+**/coverage
+**/.env*
+**/*.log
+.git
+standards
+docs

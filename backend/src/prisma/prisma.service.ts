@@ -23,8 +23,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
 
-      // Cap concurrent connections so one instance cannot exhaust PostgreSQL.
-      max: config.get<number>('database.poolMax', 10),
+      // Cap concurrent connections so one instance cannot exhaust PostgreSQL:
+      // every subsystem shares one server PostgreSQL (deployment.md 4.1).
+      max: config.get<number>('database.poolMax', 5),
 
       // Fail fast instead of queueing forever when the pool is saturated.
       connectionTimeoutMillis: config.get<number>('database.connectTimeoutMs', 5000),
@@ -46,7 +47,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit(): Promise<void> {
     await this.$connect();
-    this.logger.log('Connected to the helpdesk database');
+    this.logger.log('Connected to the study Q&A database');
   }
 
   async onModuleDestroy(): Promise<void> {
