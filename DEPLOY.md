@@ -44,6 +44,7 @@ Vercel และ Render ดึงโค้ดจาก GitHub · ถ้าไม
 |---|---|
 | `BACKEND_URL` | `https://csmju-study-qa-api.onrender.com` (URL จากข้อ 2) |
 | `SUBSYSTEM_ID` | `csmju-study-qa` |
+| `CORE_HUB_WEB_URL` | `https://csmju2030.jowave.com` (ปุ่ม "กลับ CSMJU Portal") |
 | `GEMINI_API_KEY` | key ของ Gemini |
 | `GEMINI_MODELS` | `gemini-3.5-flash,gemini-flash-lite-latest` |
 

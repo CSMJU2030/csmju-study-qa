@@ -131,7 +131,7 @@ export default (): AppConfig => {
     subsystemId: process.env.SUBSYSTEM_ID ?? 'csmju-study-qa',
     subsystemName: process.env.SUBSYSTEM_NAME ?? 'ถาม-ตอบวิชาการ CS แม่โจ้',
     database: {
-      poolMax: num(process.env.DATABASE_POOL_MAX, 10),
+      poolMax: num(process.env.DATABASE_POOL_MAX, 5),
       connectTimeoutMs: num(process.env.DATABASE_CONNECT_TIMEOUT_MS, 5000),
       idleTimeoutMs: num(process.env.DATABASE_IDLE_TIMEOUT_MS, 30_000),
       statementTimeoutMs: num(process.env.DATABASE_STATEMENT_TIMEOUT_MS, 5000),

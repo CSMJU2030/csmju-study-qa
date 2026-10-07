@@ -1,8 +1,11 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 // frontend (:3235) คือประตูเดียวของระบบ (subsystem.yaml → base_url):
 // ส่ง /api/* และ endpoint SSO 3 ตัว (auth-contract.md ข้อ 5) ต่อไป backend NestJS (:4235)
 // คุกกี้ state ของ /auth/login และคุกกี้ session จึงอยู่ origin เดียวกับหน้าเว็บ
+// next build ฝัง rewrites ลงไฟล์ build: BACKEND_URL อ่านตอน build เท่านั้น — dev จาก .env.local ·
+// image จาก frontend/Dockerfile (http://api:4000) (deployment.md ข้อ 3.2)
 const BACKEND_URL = (process.env.BACKEND_URL || "http://127.0.0.1:4235").replace(/\/+$/, "");
 
 // ตอน dev Next.js บล็อกไฟล์ JS ของ dev server เมื่อเปิดจาก host อื่นที่ไม่ใช่ localhost (เช่น IP ของ VPN
@@ -14,9 +17,14 @@ const DEV_ALLOWED_ORIGINS = (process.env.DEV_ALLOWED_ORIGINS ?? "")
   .map((host) => host.trim())
   .filter(Boolean);
 
+// image ของ server มีแค่ server ที่ trace แล้ว (deployment.md ข้อ 3 · DEP-04) · pnpm เก็บ dependency
+// ไว้ที่รากของ workspace จึงต้อง trace จากราก · Vercel build แบบของตัวเอง และ standalone ทำให้ขั้นเก็บไฟล์ล้ม
+const standalone: Pick<NextConfig, "output" | "outputFileTracingRoot"> = process.env.VERCEL
+  ? {}
+  : { output: "standalone", outputFileTracingRoot: path.join(__dirname, "..") };
+
 const nextConfig: NextConfig = {
-  // standalone ใช้กับ Docker (backend/Dockerfile) · Vercel build แบบของตัวเอง และ standalone ทำให้ขั้นเก็บไฟล์ล้ม
-  output: process.env.VERCEL ? undefined : "standalone",
+  ...standalone,
   allowedDevOrigins: DEV_ALLOWED_ORIGINS,
   poweredByHeader: false,
   async rewrites() {
