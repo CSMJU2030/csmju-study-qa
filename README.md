@@ -24,6 +24,6 @@ pnpm dev
 
 - ยังไม่ได้รับอนุมัติใน Core Hub: `pnpm dev:local` ใช้ Core Hub จำลองในเครื่อง (บัญชีทดสอบ ไม่มีรหัสผ่าน)
 - ดูหน้าเว็บอย่างเดียว ไม่ต้องมี backend: `pnpm --filter frontend dev:demo`
-- ขึ้นระบบออนไลน์ (Vercel + Render + Neon): `DEPLOY.md`
+- รันแบบ server ในเครื่อง: `docker compose up -d --build` · ขึ้น server ของรายวิชา (DevOps เป็นคนขึ้น): `DEPLOY.md`
 
 ก่อนเปิด PR อ่าน `standards/docs/github-workflow.md` ข้อ 1 · branch ชื่อ `feature/csmju-study-qa/<เรื่องที่ทำ>`

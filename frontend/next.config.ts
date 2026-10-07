@@ -17,14 +17,11 @@ const DEV_ALLOWED_ORIGINS = (process.env.DEV_ALLOWED_ORIGINS ?? "")
   .map((host) => host.trim())
   .filter(Boolean);
 
-// image ของ server มีแค่ server ที่ trace แล้ว (deployment.md ข้อ 3 · DEP-04) · pnpm เก็บ dependency
-// ไว้ที่รากของ workspace จึงต้อง trace จากราก · Vercel build แบบของตัวเอง และ standalone ทำให้ขั้นเก็บไฟล์ล้ม
-const standalone: Pick<NextConfig, "output" | "outputFileTracingRoot"> = process.env.VERCEL
-  ? {}
-  : { output: "standalone", outputFileTracingRoot: path.join(__dirname, "..") };
-
 const nextConfig: NextConfig = {
-  ...standalone,
+  // deployment.md ข้อ 3: image มีแค่ server ที่ trace แล้ว (DEP-04)
+  output: "standalone",
+  // pnpm เก็บ dependency ไว้ที่รากของ workspace (รากของ repo) จึงต้อง trace จากราก
+  outputFileTracingRoot: path.join(__dirname, ".."),
   allowedDevOrigins: DEV_ALLOWED_ORIGINS,
   poweredByHeader: false,
   async rewrites() {

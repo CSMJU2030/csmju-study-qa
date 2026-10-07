@@ -1,84 +1,76 @@
-# ขึ้นระบบออนไลน์ — Vercel + Render + Neon
+# ขึ้น server ของรายวิชา — csmju-study-qa
+
+ตาม `standards/docs/deployment.md` (standards 1.8.4) · DevOps เป็นคนขึ้นระบบ ทีมเตรียม image และ env ให้
 
 ```text
-ผู้ใช้ ─► https://<ชื่อ>.vercel.app          หน้าเว็บ (Next.js · Vercel) — ประตูเดียวของระบบ
-            │  /api/* · /auth/login · /auth/callback · /auth/logout  → ส่งต่อ (BACKEND_URL)
-            ▼
-          https://<ชื่อ>.onrender.com          backend (NestJS · Render)
+ผู้ใช้ ─► https://csmju-study-qa.jowave.com      Cloudflare → Apache → 127.0.0.1:<พอร์ตใน csmju-map.txt>
             │
-            ├─► Neon PostgreSQL                 ฐานข้อมูล
-            ├─► https://csmju2030.jowave.com   Core Hub (SSO · JWKS)
-            └─► Gemini API                      ผู้ช่วย AI
+            ▼
+          web  (Next.js · :3000 · frontend/Dockerfile)   ประตูเดียวของระบบ
+            │  /api/* · /auth/login · /auth/callback · /auth/logout  → http://api:4000 (ฝังตอน build)
+            ▼
+          api  (NestJS · :4000 · backend/Dockerfile)      migrate ตอนสตาร์ต แล้วเปิด server
+            │
+            ├─► PostgreSQL ตัวกลาง                        database + role ของระบบนี้
+            ├─► https://csmju2030.jowave.com            Core Hub (SSO · JWKS)
+            └─► Gemini API                               ผู้ช่วย AI
 ```
 
-ทำตามลำดับ — ทุกบัญชีสมัครด้วย GitHub ได้ · ทุกตัวมีแพ็กเกจฟรี
+## 1. image
 
-## 0. โค้ดต้องอยู่บน GitHub ที่บัญชีของคุณเข้าถึงได้
+push เข้า `main` แล้ว workflow `images.yml` (DevOps วางไว้) build ให้เอง — ดูผลที่ **Actions → Images**
 
-Vercel และ Render ดึงโค้ดจาก GitHub · ถ้าไม่มีสิทธิ์ push เข้า repo เดิม ให้ fork ไว้ที่บัญชีตัวเอง แล้ว push งานขึ้น fork
-
-## 1. ฐานข้อมูล — Neon
-
-1. https://neon.tech → New Project → Region: เลือกให้ตรงกับ `region` ใน `render.yaml` (ตอนนี้ Ohio = AWS US East 2) · PostgreSQL 16 ขึ้นไป
-2. คัดลอก **Connection string** (แบบ pooled ไม่ได้ก็ได้) หน้าตา `postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`
-3. เก็บไว้ใช้ข้อ 2 — **ห้ามใส่ใน repo หรือแชต**
-
-ตารางถูกสร้างเองตอน backend เริ่มทำงาน (`prisma migrate deploy`)
-
-## 2. backend — Render
-
-1. https://render.com → New → **Blueprint** → เลือก repo → Render อ่าน `render.yaml`
-2. กรอกค่าที่ Render ถาม: `DATABASE_URL` = connection string จากข้อ 1 · `GEMINI_API_KEY` = key ของ Gemini
-3. รอ deploy เสร็จ แล้วเปิด `https://csmju-study-qa-api.onrender.com/api/health` → ต้องได้ `"status":"ok"`
-4. จด URL ของ backend ไว้ใช้ข้อ 3
-
-แพ็กเกจฟรีของ Render หลับเมื่อไม่มีคนใช้ 15 นาที — คำขอแรกหลังหลับรอประมาณ 1 นาที
-
-## 3. หน้าเว็บ — Vercel
-
-1. https://vercel.com → Add New → Project → เลือก repo
-2. **Root Directory: `frontend`** · Framework: Next.js (เลือกให้เอง)
-3. Environment Variables:
-
-| ชื่อ | ค่า |
+| image | จาก |
 |---|---|
-| `BACKEND_URL` | `https://csmju-study-qa-api.onrender.com` (URL จากข้อ 2) |
-| `SUBSYSTEM_ID` | `csmju-study-qa` |
-| `CORE_HUB_WEB_URL` | `https://csmju2030.jowave.com` (ปุ่ม "กลับ CSMJU Portal") |
-| `GEMINI_API_KEY` | key ของ Gemini |
+| `ghcr.io/csmju2030/csmju-study-qa-api:main` | `backend/Dockerfile` |
+| `ghcr.io/csmju2030/csmju-study-qa-web:main` | `frontend/Dockerfile` |
+
+## 2. env บน server
+
+**api** — รายการเต็มอยู่ใน `backend/.env.example`
+
+| env | ค่า |
+|---|---|
+| `NODE_ENV` · `PORT` · `TZ` | `production` · `4000` · `Asia/Bangkok` |
+| `DATABASE_URL` · `DATABASE_POOL_MAX` | ของ DevOps · `5` |
+| `CORE_HUB_URL` · `CORE_HUB_WEB_URL` | `https://csmju2030.jowave.com` |
+| `CORE_HUB_JWKS_URL` | `https://csmju2030.jowave.com/api/v1/.well-known/jwks.json` |
+| `CORE_HUB_ISSUER` · `CORE_HUB_AUDIENCE` | `core-hub` · `csmju2030` |
+| `SUBSYSTEM_ID` · `SUBSYSTEM_NAME` | `csmju-study-qa` · `ถาม-ตอบวิชาการ CS แม่โจ้` |
+| `TRUST_PROXY` | `uniquelocal` — คำขอมาถึง api ผ่าน web ใน network ของ compose ที่อยู่ของผู้ใช้จึงมาจาก `X-Forwarded-For` |
+| `GEMINI_API_KEY` | **ค่าลับ** — PL ส่งให้ทางข้อความส่วนตัว · ว่าง = ปิดผู้ช่วย AI |
 | `GEMINI_MODELS` | `gemini-3.5-flash,gemini-flash-lite-latest` |
 
-4. Deploy → ได้ URL เช่น `https://csmju-study-qa.vercel.app`
+**web** — `CORE_HUB_WEB_URL` · `SUBSYSTEM_ID` · `TZ` ตามมาตรฐาน **และเพิ่ม** `GEMINI_API_KEY` · `GEMINI_MODELS`
+(แชตของผู้ช่วยและตัวช่วยร่างคำถามเรียก Gemini จากฝั่ง web — `frontend/src/app/assistant/*`)
 
-ห้ามตั้ง `NEXT_PUBLIC_DEMO_MODE` (โหมดตัวอย่าง) บน Vercel
-
-## 4. ลงทะเบียน / แก้ทะเบียนใน Core Hub
-
-| ช่อง | ค่า |
-|---|---|
-| ชื่อระบบ | `csmju-study-qa` |
-| ชื่อที่แสดง | `ถาม-ตอบวิชาการ CS แม่โจ้` |
-| Callback URL | `https://<ชื่อ>.vercel.app/auth/callback` (URL จากข้อ 3) |
-| Base URL | `https://<ชื่อ>.vercel.app` |
-
-- ยังไม่ส่งฟอร์ม: กรอกค่าตามตารางได้เลย
-- ส่งไปแล้วด้วย `http://localhost:3235/...`: ก่อนอนุมัติเจ้าของแก้เองได้ · หลังอนุมัติต้องขอ admin ระบบกลางเปลี่ยนให้ (`subsystem-registry.md`)
-- แก้ `base_url` ใน `subsystem.yaml` ให้เป็น URL ของ Vercel ด้วย
-
-## 5. ทดสอบ (connect-core-hub.md ข้อ 6)
-
-1. เปิด `https://<ชื่อ>.vercel.app` → กดเข้าสู่ระบบ → login ที่ Core Hub → กลับมาหน้าเดิม
-2. ตั้งกระทู้ → ผู้ช่วย AI ตอบภายในไม่กี่วินาที → รีเฟรชแล้วกระทู้ยังอยู่
-3. ออกจากระบบ → ไปหน้า logout ของ Core Hub
-
-## ย้ายข้อมูลจากเครื่อง (ถ้าต้องการ)
+## 3. ทดสอบในเครื่องก่อนขอขึ้น (deployment.md ข้อ 6)
 
 ```bash
-"C:/Program Files/PostgreSQL/18/bin/pg_dump.exe" --data-only --no-owner --exclude-table=_prisma_migrations "postgresql://helpdesk:helpdesk@localhost:5432/helpdesk_db" > data.sql
+docker compose up -d --build     # db + api + web แบบเดียวกับ server
+docker compose ps                # ทั้งสามต้อง healthy
+docker compose logs api          # migration ผ่าน และ subsystem.started
+docker stats --no-stream         # web + api ไม่เกิน ~400 MB
+docker compose down
 ```
+
+เปิด `http://localhost:3235` ด้วย Chrome แล้ว login ผ่าน Core Hub · ใส่ `GEMINI_API_KEY` ในไฟล์ `.env` ที่รากของ repo (ไม่ขึ้น git) ถ้าจะทดสอบผู้ช่วย AI
+
+## 4. ทะเบียน Core Hub
+
+| ช่วง | Callback URL | Base URL |
+|---|---|---|
+| ก่อนเปิดใช้ (ทดสอบในเครื่อง) | `http://localhost:3235/auth/callback` | `http://localhost:3235` |
+| เปิดใช้บน server | `https://csmju-study-qa.jowave.com/auth/callback` | `https://csmju-study-qa.jowave.com` |
+
+วันเปิดใช้ server ปิดโหมดก่อนเปิดใช้ — PL ขอ admin เปลี่ยน callback เป็นค่าของ server ก่อนวันนั้น
+
+## 5. ข้อมูลเดิม (ถ้าต้องย้าย)
+
+ตารางถูกสร้างเองตอน api สตาร์ต · ถ้าจะย้ายกระทู้เดิมไป server ให้ dump เฉพาะข้อมูลแล้วส่งให้ DevOps นำเข้าหลัง api สร้างตารางเสร็จ
 
 ```bash
-"C:/Program Files/PostgreSQL/18/bin/psql.exe" "<connection string ของ Neon>" -f data.sql
+pg_dump --data-only --no-owner --exclude-table=_prisma_migrations "<DATABASE_URL ของฐานเดิม>" > data.sql
 ```
 
-ทำหลัง backend บน Render สร้างตารางเสร็จ (ข้อ 2) · ลบ `data.sql` ทิ้งหลังใช้ (มีข้อมูลผู้ใช้)
+ไฟล์นี้มีข้อมูลผู้ใช้ — ส่งทางที่ปลอดภัยและลบทิ้งหลังใช้
